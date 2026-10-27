@@ -158,8 +158,7 @@ define i32 @xor_eq(i32 %x, i32 %y) {
 ; CHECK-LABEL: @xor_eq(
 ; CHECK-NEXT:    [[XY:%.*]] = xor i32 [[Y:%.*]], [[X:%.*]]
 ; CHECK-NEXT:    [[CMP:%.*]] = icmp eq i32 [[XY]], -1
-; CHECK-NEXT:    [[SEL:%.*]] = select i1 [[CMP]], i32 [[Y]], i32 0
-; CHECK-NEXT:    [[R:%.*]] = xor i32 [[SEL]], [[X]]
+; CHECK-NEXT:    [[R:%.*]] = select i1 [[CMP]], i32 -1, i32 [[X]]
 ; CHECK-NEXT:    ret i32 [[R]]
 ;
   %xy = xor i32 %y, %x
@@ -174,8 +173,7 @@ define i8 @xor_ne(i8 %x, i8 %y) {
 ; CHECK-NEXT:    [[XY:%.*]] = xor i8 [[X:%.*]], [[Y:%.*]]
 ; CHECK-NEXT:    [[CMP:%.*]] = icmp ne i8 [[XY]], 42
 ; CHECK-NEXT:    call void @use_i1(i1 [[CMP]])
-; CHECK-NEXT:    [[SEL:%.*]] = select i1 [[CMP]], i8 0, i8 [[Y]]
-; CHECK-NEXT:    [[R:%.*]] = xor i8 [[SEL]], [[X]]
+; CHECK-NEXT:    [[R:%.*]] = select i1 [[CMP]], i8 [[X]], i8 42
 ; CHECK-NEXT:    ret i8 [[R]]
 ;
   %xy = xor i8 %x, %y
@@ -226,8 +224,7 @@ define i8 @xor_commute_outer(i8 %x, i8 %y) {
 ; CHECK-LABEL: @xor_commute_outer(
 ; CHECK-NEXT:    [[XY:%.*]] = xor i8 [[Y:%.*]], [[X:%.*]]
 ; CHECK-NEXT:    [[CMP:%.*]] = icmp eq i8 [[XY]], 42
-; CHECK-NEXT:    [[SEL:%.*]] = select i1 [[CMP]], i8 [[Y]], i8 0
-; CHECK-NEXT:    [[R:%.*]] = xor i8 [[X]], [[SEL]]
+; CHECK-NEXT:    [[R:%.*]] = select i1 [[CMP]], i8 42, i8 [[X]]
 ; CHECK-NEXT:    ret i8 [[R]]
 ;
   %xy = xor i8 %y, %x
@@ -241,8 +238,7 @@ define i8 @xor_commute_inner(i8 %x, i8 %y) {
 ; CHECK-LABEL: @xor_commute_inner(
 ; CHECK-NEXT:    [[XY:%.*]] = xor i8 [[X:%.*]], [[Y:%.*]]
 ; CHECK-NEXT:    [[CMP:%.*]] = icmp eq i8 [[XY]], 42
-; CHECK-NEXT:    [[SEL:%.*]] = select i1 [[CMP]], i8 [[Y]], i8 0
-; CHECK-NEXT:    [[R:%.*]] = xor i8 [[SEL]], [[X]]
+; CHECK-NEXT:    [[R:%.*]] = select i1 [[CMP]], i8 42, i8 [[X]]
 ; CHECK-NEXT:    ret i8 [[R]]
 ;
   %xy = xor i8 %x, %y
@@ -256,8 +252,7 @@ define <2 x i8> @xor_splat(<2 x i8> %x, <2 x i8> %y) {
 ; CHECK-LABEL: @xor_splat(
 ; CHECK-NEXT:    [[XY:%.*]] = xor <2 x i8> [[Y:%.*]], [[X:%.*]]
 ; CHECK-NEXT:    [[CMP:%.*]] = icmp eq <2 x i8> [[XY]], splat (i8 -1)
-; CHECK-NEXT:    [[SEL:%.*]] = select <2 x i1> [[CMP]], <2 x i8> [[Y]], <2 x i8> zeroinitializer
-; CHECK-NEXT:    [[R:%.*]] = xor <2 x i8> [[SEL]], [[X]]
+; CHECK-NEXT:    [[R:%.*]] = select <2 x i1> [[CMP]], <2 x i8> splat (i8 -1), <2 x i8> [[X]]
 ; CHECK-NEXT:    ret <2 x i8> [[R]]
 ;
   %xy = xor <2 x i8> %y, %x
@@ -271,8 +266,7 @@ define <2 x i8> @xor_nonsplat(<2 x i8> %x, <2 x i8> %y) {
 ; CHECK-LABEL: @xor_nonsplat(
 ; CHECK-NEXT:    [[XY:%.*]] = xor <2 x i8> [[Y:%.*]], [[X:%.*]]
 ; CHECK-NEXT:    [[CMP:%.*]] = icmp eq <2 x i8> [[XY]], <i8 42, i8 -1>
-; CHECK-NEXT:    [[SEL:%.*]] = select <2 x i1> [[CMP]], <2 x i8> [[Y]], <2 x i8> zeroinitializer
-; CHECK-NEXT:    [[R:%.*]] = xor <2 x i8> [[SEL]], [[X]]
+; CHECK-NEXT:    [[R:%.*]] = select <2 x i1> [[CMP]], <2 x i8> <i8 42, i8 -1>, <2 x i8> [[X]]
 ; CHECK-NEXT:    ret <2 x i8> [[R]]
 ;
   %xy = xor <2 x i8> %y, %x
@@ -316,8 +310,7 @@ define <vscale x 2 x i8> @xor_scalable(<vscale x 2 x i8> %x, <vscale x 2 x i8> %
 ; CHECK-LABEL: @xor_scalable(
 ; CHECK-NEXT:    [[XY:%.*]] = xor <vscale x 2 x i8> [[Y:%.*]], [[X:%.*]]
 ; CHECK-NEXT:    [[CMP:%.*]] = icmp eq <vscale x 2 x i8> [[XY]], splat (i8 -1)
-; CHECK-NEXT:    [[SEL:%.*]] = select <vscale x 2 x i1> [[CMP]], <vscale x 2 x i8> [[Y]], <vscale x 2 x i8> zeroinitializer
-; CHECK-NEXT:    [[R:%.*]] = xor <vscale x 2 x i8> [[SEL]], [[X]]
+; CHECK-NEXT:    [[R:%.*]] = select <vscale x 2 x i1> [[CMP]], <vscale x 2 x i8> splat (i8 -1), <vscale x 2 x i8> [[X]]
 ; CHECK-NEXT:    ret <vscale x 2 x i8> [[R]]
 ;
   %xy = xor <vscale x 2 x i8> %y, %x
@@ -332,8 +325,7 @@ define i8 @xor_multiuse_binop(i8 %x, i8 %y) {
 ; CHECK-NEXT:    [[XY:%.*]] = xor i8 [[Y:%.*]], [[X:%.*]]
 ; CHECK-NEXT:    call void @use_i8(i8 [[XY]])
 ; CHECK-NEXT:    [[CMP:%.*]] = icmp eq i8 [[XY]], 42
-; CHECK-NEXT:    [[SEL:%.*]] = select i1 [[CMP]], i8 [[Y]], i8 0
-; CHECK-NEXT:    [[R:%.*]] = xor i8 [[SEL]], [[X]]
+; CHECK-NEXT:    [[R:%.*]] = select i1 [[CMP]], i8 42, i8 [[X]]
 ; CHECK-NEXT:    ret i8 [[R]]
 ;
   %xy = xor i8 %y, %x
@@ -440,8 +432,7 @@ define i8 @xor_rhs_noundef(i8 %x, i8 %y, i8 noundef %z) {
 ; CHECK-LABEL: @xor_rhs_noundef(
 ; CHECK-NEXT:    [[XY:%.*]] = xor i8 [[Y:%.*]], [[X:%.*]]
 ; CHECK-NEXT:    [[CMP:%.*]] = icmp eq i8 [[XY]], [[Z:%.*]]
-; CHECK-NEXT:    [[SEL:%.*]] = select i1 [[CMP]], i8 [[Y]], i8 0
-; CHECK-NEXT:    [[R:%.*]] = xor i8 [[SEL]], [[X]]
+; CHECK-NEXT:    [[R:%.*]] = select i1 [[CMP]], i8 [[Z]], i8 [[X]]
 ; CHECK-NEXT:    ret i8 [[R]]
 ;
   %xy = xor i8 %y, %x
@@ -455,8 +446,7 @@ define i8 @sub_eq(i8 %y, i8 noundef %z) {
 ; CHECK-LABEL: @sub_eq(
 ; CHECK-NEXT:    [[XY:%.*]] = sub i8 5, [[Y:%.*]]
 ; CHECK-NEXT:    [[CMP:%.*]] = icmp eq i8 [[XY]], [[Z:%.*]]
-; CHECK-NEXT:    [[TMP1:%.*]] = sub i8 5, [[Y]]
-; CHECK-NEXT:    [[R:%.*]] = select i1 [[CMP]], i8 [[TMP1]], i8 4
+; CHECK-NEXT:    [[R:%.*]] = select i1 [[CMP]], i8 [[Z]], i8 4
 ; CHECK-NEXT:    ret i8 [[R]]
 ;
   %xy = sub i8 5, %y
@@ -470,8 +460,7 @@ define i8 @and_eq(i8 %x, i8 %y) {
 ; CHECK-LABEL: @and_eq(
 ; CHECK-NEXT:    [[XY:%.*]] = and i8 [[X:%.*]], [[Y:%.*]]
 ; CHECK-NEXT:    [[CMP:%.*]] = icmp eq i8 [[XY]], 42
-; CHECK-NEXT:    [[SEL:%.*]] = select i1 [[CMP]], i8 [[Y]], i8 -1
-; CHECK-NEXT:    [[R:%.*]] = and i8 [[X]], [[SEL]]
+; CHECK-NEXT:    [[R:%.*]] = select i1 [[CMP]], i8 42, i8 [[X]]
 ; CHECK-NEXT:    ret i8 [[R]]
 ;
   %xy = and i8 %x, %y
@@ -485,8 +474,7 @@ define i8 @or_eq(i8 %x, i8 %y) {
 ; CHECK-LABEL: @or_eq(
 ; CHECK-NEXT:    [[XY:%.*]] = or i8 [[X:%.*]], [[Y:%.*]]
 ; CHECK-NEXT:    [[CMP:%.*]] = icmp eq i8 [[XY]], 42
-; CHECK-NEXT:    [[SEL:%.*]] = select i1 [[CMP]], i8 [[Y]], i8 0
-; CHECK-NEXT:    [[R:%.*]] = or i8 [[X]], [[SEL]]
+; CHECK-NEXT:    [[R:%.*]] = select i1 [[CMP]], i8 42, i8 [[X]]
 ; CHECK-NEXT:    ret i8 [[R]]
 ;
   %xy = or i8 %x, %y
@@ -500,8 +488,7 @@ define i8 @mul_eq(i8 %x, i8 %y) {
 ; CHECK-LABEL: @mul_eq(
 ; CHECK-NEXT:    [[XY:%.*]] = mul i8 [[X:%.*]], [[Y:%.*]]
 ; CHECK-NEXT:    [[CMP:%.*]] = icmp eq i8 [[XY]], 42
-; CHECK-NEXT:    [[SEL:%.*]] = select i1 [[CMP]], i8 [[Y]], i8 1
-; CHECK-NEXT:    [[R:%.*]] = mul i8 [[X]], [[SEL]]
+; CHECK-NEXT:    [[R:%.*]] = select i1 [[CMP]], i8 42, i8 [[X]]
 ; CHECK-NEXT:    ret i8 [[R]]
 ;
   %xy = mul i8 %x, %y
@@ -515,8 +502,7 @@ define i8 @mul_flags(i8 %x, i8 %y) {
 ; CHECK-LABEL: @mul_flags(
 ; CHECK-NEXT:    [[XY:%.*]] = mul nsw i8 [[X:%.*]], [[Y:%.*]]
 ; CHECK-NEXT:    [[CMP:%.*]] = icmp eq i8 [[XY]], 42
-; CHECK-NEXT:    [[SEL:%.*]] = select i1 [[CMP]], i8 [[Y]], i8 1
-; CHECK-NEXT:    [[R:%.*]] = mul nuw i8 [[X]], [[SEL]]
+; CHECK-NEXT:    [[R:%.*]] = select i1 [[CMP]], i8 42, i8 [[X]]
 ; CHECK-NEXT:    ret i8 [[R]]
 ;
   %xy = mul nsw i8 %x, %y
@@ -532,8 +518,7 @@ define i8 @xor_eq_commuted_cmp(i8 %x, i8 %y, i8 %zi) {
 ; CHECK-NEXT:    [[Z:%.*]] = freeze i8 [[ZI:%.*]]
 ; CHECK-NEXT:    [[XY:%.*]] = xor i8 [[X:%.*]], [[Y:%.*]]
 ; CHECK-NEXT:    [[CMP:%.*]] = icmp eq i8 [[Z]], [[XY]]
-; CHECK-NEXT:    [[SEL:%.*]] = select i1 [[CMP]], i8 [[Y]], i8 0
-; CHECK-NEXT:    [[R:%.*]] = xor i8 [[X]], [[SEL]]
+; CHECK-NEXT:    [[R:%.*]] = select i1 [[CMP]], i8 [[Z]], i8 [[X]]
 ; CHECK-NEXT:    ret i8 [[R]]
 ;
   %z = freeze i8 %zi
@@ -551,8 +536,7 @@ define i8 @xor_ne_commuted_cmp(i8 %x, i8 %y, i8 %zi) {
 ; CHECK-NEXT:    [[XY:%.*]] = xor i8 [[Y:%.*]], [[X:%.*]]
 ; CHECK-NEXT:    [[CMP:%.*]] = icmp ne i8 [[Z]], [[XY]]
 ; CHECK-NEXT:    call void @use_i1(i1 [[CMP]])
-; CHECK-NEXT:    [[SEL:%.*]] = select i1 [[CMP]], i8 0, i8 [[Y]]
-; CHECK-NEXT:    [[R:%.*]] = xor i8 [[X]], [[SEL]]
+; CHECK-NEXT:    [[R:%.*]] = select i1 [[CMP]], i8 [[X]], i8 [[Z]]
 ; CHECK-NEXT:    ret i8 [[R]]
 ;
   %z = freeze i8 %zi
@@ -587,8 +571,7 @@ define <2 x i8> @xor_commuted_cmp_vector(<2 x i8> %x, <2 x i8> %y, <2 x i8> %zi)
 ; CHECK-NEXT:    [[Z:%.*]] = freeze <2 x i8> [[ZI:%.*]]
 ; CHECK-NEXT:    [[XY:%.*]] = xor <2 x i8> [[X:%.*]], [[Y:%.*]]
 ; CHECK-NEXT:    [[CMP:%.*]] = icmp eq <2 x i8> [[Z]], [[XY]]
-; CHECK-NEXT:    [[SEL:%.*]] = select <2 x i1> [[CMP]], <2 x i8> [[Y]], <2 x i8> zeroinitializer
-; CHECK-NEXT:    [[R:%.*]] = xor <2 x i8> [[X]], [[SEL]]
+; CHECK-NEXT:    [[R:%.*]] = select <2 x i1> [[CMP]], <2 x i8> [[Z]], <2 x i8> [[X]]
 ; CHECK-NEXT:    ret <2 x i8> [[R]]
 ;
   %z = freeze <2 x i8> %zi
@@ -604,8 +587,7 @@ define i8 @shl_commuted_cmp(i8 %y, i8 %zi) {
 ; CHECK-NEXT:    [[Z:%.*]] = freeze i8 [[ZI:%.*]]
 ; CHECK-NEXT:    [[XY:%.*]] = shl i8 3, [[Y:%.*]]
 ; CHECK-NEXT:    [[CMP:%.*]] = icmp eq i8 [[Z]], [[XY]]
-; CHECK-NEXT:    [[TMP1:%.*]] = shl i8 3, [[Y]]
-; CHECK-NEXT:    [[R:%.*]] = select i1 [[CMP]], i8 [[TMP1]], i8 3
+; CHECK-NEXT:    [[R:%.*]] = select i1 [[CMP]], i8 [[Z]], i8 3
 ; CHECK-NEXT:    ret i8 [[R]]
 ;
   %z = freeze i8 %zi

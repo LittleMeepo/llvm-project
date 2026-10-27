@@ -1804,7 +1804,30 @@ static Value *simplifyOperationIntoSelectOperand(Instruction &I, SelectInst *SI,
     Ops.push_back(V);
   }
 
-  return simplifyInstructionWithOperands(&I, Ops, I.getDataLayout());
+  if (Value *V = simplifyInstructionWithOperands(&I, Ops, I.getDataLayout()))
+    return V;
+
+  // If this arm makes the condition an equality, the result of the operation
+  // may be known from the comparison: (X ^ Y) == C implies X ^ Y is C.
+  // The replacement must not introduce a new use of a possibly undef value.
+  Value *V;
+  auto Pred = IsTrueArm ? ICmpInst::ICMP_EQ : ICmpInst::ICMP_NE;
+  if (I.isBinaryOp() &&
+      (match(SI->getCondition(),
+             m_c_SpecificICmp(
+                 Pred,
+                 m_BinOp(I.getOpcode(), m_Specific(Ops[0]), m_Specific(Ops[1])),
+                 m_Value(V))) ||
+       (I.isCommutative() &&
+        match(SI->getCondition(),
+              m_c_SpecificICmp(Pred,
+                               m_BinOp(I.getOpcode(), m_Specific(Ops[1]),
+                                       m_Specific(Ops[0])),
+                               m_Value(V))))) &&
+      isGuaranteedNotToBeUndefOrPoison(V))
+    return V;
+
+  return nullptr;
 }
 
 static Value *foldOperationIntoSelectOperand(Instruction &I, SelectInst *SI,
